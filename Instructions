@@ -1,0 +1,9 @@
+Instructions
+Prepare Known Faces: Replace the load_known_faces function with paths to your own images and names. Ensure the images are in the same directory or provide the correct path.
+Run the Code: Execute the script in your Python environment. Make sure your webcam is connected and accessible.
+Attendance Logging: The attendance will be logged in a CSV file named attendance_log.csv in the same directory as the script.
+Exit the Program: Press the 'q' key to exit the video feed and save the attendance log.
+
+Note
+Ensure that the images used for known faces are clear and well-lit for better recognition accuracy.
+You may need to adjust the code for handling multiple faces or improve the attendance logging mechanism based on your requirements.
