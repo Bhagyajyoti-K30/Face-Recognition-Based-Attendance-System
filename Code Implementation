@@ -1,0 +1,91 @@
+Prerequisites
+Make sure you have the following libraries installed. You can install them using pip:
+pip install opencv-python face_recognition numpy pandas
+
+Code Implementation
+import cv2
+import face_recognition
+import numpy as np
+import pandas as pd
+from datetime import datetime
+
+# Initialize the webcam
+video_capture = cv2.VideoCapture(0)
+
+# Load known face encodings and names
+known_face_encodings = []
+known_face_names = []
+
+# Load images and create encodings
+def load_known_faces():
+    # Add your known faces here
+    # Example: 
+    # image = face_recognition.load_image_file("path_to_image.jpg")
+    # encoding = face_recognition.face_encodings(image)[0]
+    # known_face_encodings.append(encoding)
+    # known_face_names.append("Name")
+
+    # Example for two known faces
+    image1 = face_recognition.load_image_file("person1.jpg")
+    encoding1 = face_recognition.face_encodings(image1)[0]
+    known_face_encodings.append(encoding1)
+    known_face_names.append("Person 1")
+
+    image2 = face_recognition.load_image_file("person2.jpg")
+    encoding2 = face_recognition.face_encodings(image2)[0]
+    known_face_encodings.append(encoding2)
+    known_face_names.append("Person 2")
+
+load_known_faces()
+
+# Create a DataFrame to log attendance
+attendance_log = pd.DataFrame(columns=["Name", "Timestamp"])
+
+while True:
+    # Capture a single frame from the webcam
+    ret, frame = video_capture.read()
+    
+    # Convert the frame from BGR to RGB
+    rgb_frame = frame[:, :, ::-1]
+
+    # Find all face locations and encodings in the current frame
+    face_locations = face_recognition.face_locations(rgb_frame)
+    face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+
+    # Loop through each face found in the frame
+    for face_encoding, face_location in zip(face_encodings, face_locations):
+        # Check if the face matches any known faces
+        matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+        name = "Unknown"
+
+        # Use the known face with the smallest distance to the new face
+        face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+        best_match_index = np.argmin(face_distances)
+        if matches[best_match_index]:
+            name = known_face_names[best_match_index]
+
+        # Log attendance if the person is recognized
+        if name != "Unknown":
+            now = datetime.now()
+            timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+            attendance_log = attendance_log.append({"Name": name, "Timestamp": timestamp}, ignore_index=True)
+
+        # Draw a rectangle around the face and label it
+        top, right, bottom, left = face_location
+        cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+        cv2.putText(frame, name, (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+
+    # Display the resulting frame
+    cv2.imshow('Video', frame)
+
+    # Break the loop on 'q' key press
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Save attendance log to a CSV file
+attendance_log.to_csv("attendance_log.csv", index=False)
+
+# Release the webcam and close windows
+video_capture.release()
+cv2.destroyAllWindows()
+
